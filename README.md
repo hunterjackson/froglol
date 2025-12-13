@@ -1,5 +1,8 @@
 # Froglol
 
+[![Tests](https://github.com/hunterjackson/froglol/actions/workflows/test.yml/badge.svg)](https://github.com/hunterjackson/froglol/actions/workflows/test.yml)
+[![Docker Build](https://github.com/hunterjackson/froglol/actions/workflows/docker-build.yml/badge.svg)](https://github.com/hunterjackson/froglol/actions/workflows/docker-build.yml)
+
 A URL bookmark redirection server inspired by Facebook's bunnylol. Froglol allows you to create custom shortcuts for your favorite websites and use them directly from your browser's URL bar.
 
 ## Features
@@ -251,9 +254,52 @@ froglol/
 
 ### Running Tests
 
+The project uses pytest with comprehensive test coverage (80% minimum required).
+
 ```bash
+# Run all tests with coverage
 uv run pytest
+
+# Run specific test file
+uv run pytest tests/test_api.py -v
+
+# Run specific test
+uv run pytest tests/test_redirect.py::test_redirect_endpoint -v
+
+# Run without coverage (faster for development)
+uv run pytest --no-cov
+
+# View coverage report
+uv run pytest
+open htmlcov/index.html  # View detailed HTML report
 ```
+
+### Code Quality
+
+```bash
+# Install development dependencies
+pip install ruff
+
+# Run linter
+ruff check app/ tests/
+
+# Auto-fix issues
+ruff check --fix app/ tests/
+
+# Format code
+ruff format app/ tests/
+```
+
+### Continuous Integration
+
+The project uses GitHub Actions for automated testing:
+- **Tests**: Run on Python 3.10, 3.11, 3.12
+- **Coverage**: Enforces 80% minimum coverage
+- **Linting**: Ruff for code quality
+- **Security**: Safety and Bandit scans
+- **Docker**: Automated image builds
+
+See [.github/BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md) for setting up branch protection rules.
 
 ### Database Management
 
