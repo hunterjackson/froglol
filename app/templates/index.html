@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Bookmarks - Froglol{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Bookmarks</h1>
+    <a href="{{ url_for('ui.new_bookmark') }}" class="btn btn-primary">Add Bookmark</a>
+</div>
+
+{% if bookmarks %}
+<table class="bookmarks-table">
+    <thead>
+        <tr>
+            <th>Command</th>
+            <th>URL</th>
+            <th>Aliases</th>
+            <th>Uses</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bookmark in bookmarks %}
+        <tr data-bookmark-id="{{ bookmark.id }}">
+            <td><strong>{{ bookmark.name }}</strong></td>
+            <td><code class="url">{{ bookmark.url }}</code></td>
+            <td>
+                <div class="aliases">
+                    {% for alias in bookmark.aliases %}
+                    <span class="alias-tag">
+                        {{ alias.alias }}
+                        <button class="delete-alias-btn" data-alias-id="{{ alias.id }}">&times;</button>
+                    </span>
+                    {% endfor %}
+                    <button class="add-alias-btn" data-bookmark-id="{{ bookmark.id }}">+ Add</button>
+                </div>
+            </td>
+            <td>{{ bookmark.use_count }}</td>
+            <td>{{ bookmark.description or '-' }}</td>
+            <td>
+                <a href="{{ url_for('ui.edit_bookmark', bookmark_id=bookmark.id) }}" class="btn btn-small">Edit</a>
+                <button class="btn btn-small btn-danger delete-btn" data-bookmark-id="{{ bookmark.id }}">Delete</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>No bookmarks yet. <a href="{{ url_for('ui.new_bookmark') }}">Create your first bookmark</a></p>
+</div>
+{% endif %}
+
+<div class="info-box">
+    <h3>Browser Setup Instructions</h3>
+    <p><strong>Chrome/Edge/Brave:</strong></p>
+    <ol>
+        <li>Go to Settings → Search Engines → Manage search engines</li>
+        <li>Click "Add" to create a new search engine</li>
+        <li>Fill in:
+            <ul>
+                <li>Name: <code>froglol</code></li>
+                <li>Keyword: <code>f</code> (or any shortcut you prefer)</li>
+                <li>URL: <code>http://localhost:5000/?q=%s</code></li>
+            </ul>
+        </li>
+        <li>Press Tab or Space in the URL bar to activate froglol</li>
+    </ol>
+</div>
+{% endblock %}

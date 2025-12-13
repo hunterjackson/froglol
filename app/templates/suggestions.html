@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Did you mean? - Froglol{% endblock %}
+
+{% block content %}
+<div class="suggestions-page">
+    <h1>No exact match found for: <code>{{ query }}</code></h1>
+
+    <div class="suggestions-box">
+        <h2>Did you mean one of these?</h2>
+
+        <div class="suggestions-list">
+            {% for suggestion in suggestions %}
+            <div class="suggestion-item">
+                <h3>{{ suggestion.name }}</h3>
+                <p class="suggestion-url"><code>{{ suggestion.url }}</code></p>
+                {% if suggestion.description %}
+                <p class="suggestion-description">{{ suggestion.description }}</p>
+                {% endif %}
+                <div class="suggestion-meta">
+                    <span class="score">Match: {{ suggestion.score }}%</span>
+                    <span class="uses">Uses: {{ suggestion.use_count }}</span>
+                </div>
+                <a href="/?q={{ suggestion.name }}%20{{ query.split(' ')[1:] | join('%20') }}"
+                   class="btn btn-primary">Use this command</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="fallback-box">
+        <p>Or search Google for "<strong>{{ query }}</strong>"</p>
+        <a href="https://www.google.com/search?q={{ query }}" class="btn">Search Google</a>
+    </div>
+
+    <div class="help-box">
+        <p><a href="{{ url_for('ui.manage') }}">View all bookmarks</a> or <a href="{{ url_for('ui.new_bookmark') }}">create a new one</a></p>
+    </div>
+</div>
+{% endblock %}

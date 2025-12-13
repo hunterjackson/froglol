@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{% if bookmark %}Edit{% else %}New{% endif %} Bookmark - Froglol{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% if bookmark %}Edit Bookmark{% else %}Create New Bookmark{% endif %}</h1>
+</div>
+
+<form id="bookmark-form" class="form">
+    <div class="form-group">
+        <label for="name">Command Name *</label>
+        <input type="text" id="name" name="name" value="{{ bookmark.name if bookmark else '' }}" required
+               placeholder="e.g., google, github, youtube">
+        <small>The command you'll type in the URL bar. Will be converted to lowercase.</small>
+    </div>
+
+    <div class="form-group">
+        <label for="url">URL Template *</label>
+        <input type="url" id="url" name="url" value="{{ bookmark.url if bookmark else '' }}" required
+               placeholder="e.g., https://www.google.com/search?q=%s">
+        <small>Use <code>%s</code> as a placeholder for search arguments (optional for direct links).</small>
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description</label>
+        <input type="text" id="description" name="description" value="{{ bookmark.description if bookmark else '' }}"
+               placeholder="Optional description">
+    </div>
+
+    {% if not bookmark %}
+    <div class="form-group">
+        <label for="aliases">Aliases (comma-separated)</label>
+        <input type="text" id="aliases" name="aliases" placeholder="e.g., g, search">
+        <small>Optional shortcuts for this bookmark. Will be converted to lowercase.</small>
+    </div>
+    {% endif %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            {% if bookmark %}Update Bookmark{% else %}Create Bookmark{% endif %}
+        </button>
+        <a href="{{ url_for('ui.manage') }}" class="btn">Cancel</a>
+    </div>
+</form>
+
+<script>
+    const form = document.getElementById('bookmark-form');
+    const isEdit = {{ 'true' if bookmark else 'false' }};
+    const bookmarkId = {{ bookmark.id if bookmark else 'null' }};
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = {
+            name: document.getElementById('name').value.trim(),
+            url: document.getElementById('url').value.trim(),
+            description: document.getElementById('description').value.trim()
+        };
+
+        // Add aliases for new bookmarks
+        if (!isEdit) {
+            const aliasesInput = document.getElementById('aliases').value.trim();
+            if (aliasesInput) {
+                formData.aliases = aliasesInput.split(',').map(a => a.trim()).filter(a => a);
+            }
+        }
+
+        try {
+            const url = isEdit
+                ? `/api/bookmarks/${bookmarkId}`
+                : '/api/bookmarks';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                window.location.href = '/manage';
+            } else {
+                const error = await response.json();
+                alert('Error: ' + (error.error || 'Failed to save bookmark'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    });
+</script>
+{% endblock %}

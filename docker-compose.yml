@@ -1,0 +1,47 @@
+services:
+  froglol:
+    build: .
+    image: froglol:latest
+    container_name: froglol
+    restart: unless-stopped
+
+    ports:
+      - "5000:5000"
+
+    volumes:
+      # Persist database
+      - ./instance:/app/instance
+
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DATABASE_URL=sqlite:////app/instance/froglol.db
+      - DEFAULT_FALLBACK_URL=https://www.google.com/search?q=%s
+      - FUZZY_MATCH_THRESHOLD=60
+      - FUZZY_MATCH_LIMIT=3
+
+    # Resource limits for small user base
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'        # Half a CPU core
+          memory: 256M       # 256 MB RAM
+        reservations:
+          cpus: '0.25'       # Reserve quarter CPU core
+          memory: 128M       # Reserve 128 MB RAM
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/manage').getcode()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+
+    # Read-only root filesystem (except for specific volumes)
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run

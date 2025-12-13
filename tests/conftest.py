@@ -1,0 +1,48 @@
+import pytest
+from app import create_app, db
+from app.models import Bookmark, Alias
+
+
+@pytest.fixture
+def app():
+    """Create and configure a test app instance."""
+    app = create_app()
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.session.remove()
+        db.drop_all()
+
+
+@pytest.fixture
+def client(app):
+    """Create a test client for the app."""
+    return app.test_client()
+
+
+@pytest.fixture
+def runner(app):
+    """Create a test CLI runner for the app."""
+    return app.test_cli_runner()
+
+
+@pytest.fixture
+def sample_bookmark(app):
+    """Create a sample bookmark for testing."""
+    with app.app_context():
+        bookmark = Bookmark(
+            name='test',
+            url='https://example.com/search?q=%s',
+            description='Test bookmark'
+        )
+        db.session.add(bookmark)
+        db.session.commit()
+
+        alias = Alias(alias='t', bookmark_id=bookmark.id)
+        db.session.add(alias)
+        db.session.commit()
+
+        return bookmark
