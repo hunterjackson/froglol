@@ -69,6 +69,18 @@ The server will start at `http://localhost:5000`
 
 ## Docker Deployment (Recommended for Production)
 
+### Quick Start with Pre-built Images
+
+Pre-built Docker images are automatically available from GitHub Container Registry:
+
+```bash
+# Pull and run the latest image
+docker pull ghcr.io/OWNER/froglol:latest
+docker compose up -d
+```
+
+**Note**: Replace `OWNER` with the GitHub username/organization. Images are built automatically on every push.
+
 ### Quick Start with Docker Compose
 
 1. **Clone the repository**

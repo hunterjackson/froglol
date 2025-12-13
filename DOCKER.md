@@ -4,15 +4,73 @@ This guide covers deploying Froglol using Docker and Docker Compose.
 
 ## Quick Start
 
+### Using Pre-built Images (Recommended)
+
+Pre-built Docker images are automatically published to GitHub Container Registry on every commit:
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/OWNER/froglol:latest
+
+# Or use a specific version
+docker pull ghcr.io/OWNER/froglol:v1.0.0
+
+# Run with docker compose (uses pre-built image)
+docker compose pull  # Pull latest image
+docker compose up -d
+
+# Access at http://localhost:5000
+```
+
+**Note**: Replace `OWNER` with your GitHub username/organization.
+
+### Building Locally
+
 ```bash
 # Clone and enter directory
 git clone <repo-url>
 cd froglol
 
-# Start with Docker Compose
-docker compose up -d
+# Build and start with Docker Compose
+docker compose up -d --build
 
 # Access at http://localhost:5000
+```
+
+## Using GitHub Container Registry Images
+
+Images are automatically built and published via GitHub Actions when you push to the repository. The images are available at:
+
+```
+ghcr.io/<github-username>/froglol:latest
+ghcr.io/<github-username>/froglol:master
+ghcr.io/<github-username>/froglol:v1.0.0  (for tagged releases)
+```
+
+### Update docker-compose.yml to Use Pre-built Images
+
+Modify your `docker-compose.yml`:
+
+```yaml
+services:
+  froglol:
+    image: ghcr.io/OWNER/froglol:latest  # Use pre-built image
+    # Remove the 'build: .' line
+    container_name: froglol
+    # ... rest of config
+```
+
+### Authentication (for private repositories)
+
+If your repository is private:
+
+```bash
+# Create a GitHub personal access token with read:packages scope
+# Then login:
+echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+
+# Or use GitHub CLI
+gh auth token | docker login ghcr.io -u USERNAME --password-stdin
 ```
 
 ## Architecture
