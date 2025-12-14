@@ -40,7 +40,17 @@ uv venv
 uv pip install -r requirements.txt
 ```
 
-### 3. (Optional) Create environment file
+### 3. Configure git hooks (recommended)
+
+Enable automatic code formatting on commit:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This sets up a pre-commit hook that automatically runs `ruff` to fix and format code before each commit.
+
+### 4. (Optional) Create environment file
 
 Copy `.env.example` to `.env` and customize settings:
 
@@ -57,7 +67,7 @@ FUZZY_MATCH_THRESHOLD=60
 FUZZY_MATCH_LIMIT=3
 ```
 
-### 4. Run the application
+### 5. Run the application
 
 ```bash
 uv run python run.py
@@ -265,6 +275,8 @@ open htmlcov/index.html  # View detailed HTML report
 
 ### Code Quality
 
+The project uses ruff for linting and formatting.
+
 ```bash
 # Install development dependencies
 uv pip install ruff
@@ -278,6 +290,28 @@ uv run ruff check --fix app/ tests/
 # Format code
 uv run ruff format app/ tests/
 ```
+
+### Git Hooks (Automatic Formatting)
+
+A pre-commit hook automatically runs ruff on all staged Python files before each commit.
+
+**Setup** (one-time):
+```bash
+git config core.hooksPath .githooks
+```
+
+**What it does:**
+- Automatically fixes linting issues with `ruff check --fix`
+- Formats code with `ruff format`
+- Re-stages modified files
+- Blocks commit if unfixable issues found
+
+**Bypass hook** (emergency only):
+```bash
+git commit --no-verify -m "Your message"
+```
+
+See [.githooks/README.md](.githooks/README.md) for more details.
 
 ### Continuous Integration
 

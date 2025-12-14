@@ -83,8 +83,11 @@ uv run pytest --no-cov
 
 ### Run Specific Test Suites
 ```bash
-# Unit tests only (fast)
+# Unit tests only (with coverage)
 uv run pytest tests/test_units.py -v
+
+# Unit tests only (without coverage, faster)
+uv run pytest tests/test_units.py -v --no-cov
 
 # Integration tests only
 uv run pytest tests/test_integration.py -v
@@ -124,20 +127,25 @@ The test workflow (`.github/workflows/test.yml`) runs on every push and pull req
 
 ```yaml
 1. Run Unit Tests (45 tests)
-   → pytest tests/test_units.py -v
+   → pytest tests/test_units.py -v --no-cov
 
 2. Run Integration Tests (26 tests)
-   → pytest tests/test_integration.py -v
+   → pytest tests/test_integration.py -v --no-cov
 
 3. Run All Tests with Coverage (114 tests)
    → pytest
    → Must reach 80% coverage or build fails
 ```
 
+**Why `--no-cov` for the first two steps?**
+
+Running pytest multiple times with coverage enabled can cause coverage data to be incomplete or overwritten. By disabling coverage for the unit and integration test runs, only the final "all tests" run collects coverage data, ensuring accurate 89%+ coverage measurement across all 114 tests.
+
 This approach provides:
 - **Clear separation** in GitHub Actions UI
 - **Fast failure** - unit tests fail first if broken
 - **Explicit validation** - integration tests are clearly tracked
+- **Accurate coverage** - single coverage run prevents data corruption
 - **Complete coverage** - final step ensures all tests pass with coverage
 
 ### Test Matrix

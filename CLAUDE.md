@@ -42,6 +42,9 @@ Using `uv run` ensures the correct virtual environment and dependencies are used
 uv venv
 uv pip install -r requirements.txt
 
+# Configure git hooks (one-time setup)
+git config core.hooksPath .githooks
+
 # Run development server
 uv run python run.py
 
@@ -288,6 +291,7 @@ Aliases are first-class alternate commands:
 - **Using `uv`**: ALWAYS use `uv run` prefix for Python commands. Direct `python` or `pytest` may use wrong environment or dependencies
 - **Virtual environment**: Created with `uv venv`, not standard `python -m venv`
 - **Installing packages**: Use `uv pip install`, not `pip install`
+- **Git hooks**: Run `git config core.hooksPath .githooks` after cloning to enable automatic ruff formatting on commit
 
 ### Database
 - **Database location**: SQLite file is in `instance/froglol.db`, not at repo root

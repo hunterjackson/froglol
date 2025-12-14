@@ -34,11 +34,11 @@ jobs:
 
       - name: Run unit tests
         run: |
-          pytest tests/test_units.py -v
+          pytest tests/test_units.py -v --no-cov
 
       - name: Run integration tests
         run: |
-          pytest tests/test_integration.py -v
+          pytest tests/test_integration.py -v --no-cov
 
       - name: Run all tests with coverage
         run: |
