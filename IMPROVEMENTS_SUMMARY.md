@@ -6,8 +6,13 @@ Successfully implemented **6 performance improvements** and **5 simplifications*
 
 ### Test Results
 - **114/114 tests passing** ✓
-- **Coverage: 89.41%** (increased from 89.02%) ✓
+- **Coverage: 89.49%** (increased from 89.02%) ✓
 - **0 regressions** ✓
+
+### Bug Fix Applied
+Fixed import issue: Changed `db.joinedload()` to `joinedload()` from `sqlalchemy.orm` in:
+- `app/services/fuzzy_matcher.py`
+- `app/routes/bookmarks.py`
 
 ---
 

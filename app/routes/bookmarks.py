@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from sqlalchemy.orm import joinedload
 from app.models import Bookmark, Alias
 from app import db
 
@@ -14,7 +15,7 @@ def normalize_command(command: str) -> str:
 def get_bookmarks():
     """Get all bookmarks."""
     bookmarks = (
-        Bookmark.query.options(db.joinedload(Bookmark.aliases))
+        Bookmark.query.options(joinedload(Bookmark.aliases))
         .order_by(Bookmark.name)
         .all()
     )
@@ -25,7 +26,7 @@ def get_bookmarks():
 def get_bookmark(bookmark_id):
     """Get a specific bookmark."""
     bookmark = (
-        Bookmark.query.options(db.joinedload(Bookmark.aliases))
+        Bookmark.query.options(joinedload(Bookmark.aliases))
         .filter_by(id=bookmark_id)
         .first_or_404()
     )

@@ -1,6 +1,7 @@
 from typing import List, Dict
 import time
 from rapidfuzz import fuzz
+from sqlalchemy.orm import joinedload
 from app.models import Bookmark
 from app import db
 
@@ -40,7 +41,7 @@ class FuzzyMatcher:
 
         # Rebuild cache with eager loading to avoid N+1 queries
         commands = {}
-        bookmarks = Bookmark.query.options(db.joinedload(Bookmark.aliases)).all()
+        bookmarks = Bookmark.query.options(joinedload(Bookmark.aliases)).all()
 
         for bookmark in bookmarks:
             # Add bookmark name
