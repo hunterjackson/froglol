@@ -1,6 +1,6 @@
 from typing import List, Dict
 from rapidfuzz import fuzz
-from app.models import Bookmark, Alias
+from app.models import Bookmark
 
 
 class FuzzyMatcher:
@@ -63,25 +63,27 @@ class FuzzyMatcher:
             score = fuzz.ratio(query.lower(), command_name.lower())
 
             if score >= self.threshold:
-                matches.append({
-                    'name': command_name,
-                    'url': bookmark.url,
-                    'description': bookmark.description,
-                    'score': score,
-                    'use_count': bookmark.use_count,
-                    'bookmark_id': bookmark.id
-                })
+                matches.append(
+                    {
+                        "name": command_name,
+                        "url": bookmark.url,
+                        "description": bookmark.description,
+                        "score": score,
+                        "use_count": bookmark.use_count,
+                        "bookmark_id": bookmark.id,
+                    }
+                )
 
         # Sort by score (descending), then by use_count (descending)
-        matches.sort(key=lambda x: (x['score'], x['use_count']), reverse=True)
+        matches.sort(key=lambda x: (x["score"], x["use_count"]), reverse=True)
 
         # Return top matches (deduplicated by bookmark_id)
         seen_bookmarks = set()
         unique_matches = []
 
         for match in matches:
-            if match['bookmark_id'] not in seen_bookmarks:
-                seen_bookmarks.add(match['bookmark_id'])
+            if match["bookmark_id"] not in seen_bookmarks:
+                seen_bookmarks.add(match["bookmark_id"])
                 unique_matches.append(match)
 
                 if len(unique_matches) >= self.limit:

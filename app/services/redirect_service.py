@@ -5,7 +5,9 @@ from app import db
 
 
 class RedirectResult:
-    def __init__(self, url: Optional[str] = None, suggestions: Optional[List[Dict]] = None):
+    def __init__(
+        self, url: Optional[str] = None, suggestions: Optional[List[Dict]] = None
+    ):
         self.url = url
         self.suggestions = suggestions
 
@@ -21,8 +23,8 @@ def parse_query(query: str) -> Tuple[str, str]:
         Tuple of (command, args) where command is lowercase
     """
     parts = query.strip().split(maxsplit=1)
-    command = parts[0].lower() if parts else ''
-    args = parts[1] if len(parts) > 1 else ''
+    command = parts[0].lower() if parts else ""
+    args = parts[1] if len(parts) > 1 else ""
     return command, args
 
 
@@ -38,10 +40,10 @@ def substitute_args(url_template: str, args: str) -> str:
         URL with args substituted and encoded
     """
     if not args:
-        return url_template.replace('%s', '')
+        return url_template.replace("%s", "")
 
     encoded_args = quote_plus(args)
-    return url_template.replace('%s', encoded_args)
+    return url_template.replace("%s", encoded_args)
 
 
 def find_bookmark_by_name_or_alias(command: str) -> Optional[Bookmark]:
@@ -78,7 +80,11 @@ def increment_usage(bookmark: Bookmark):
     db.session.commit()
 
 
-def process_redirect(query: str, fuzzy_matcher=None, default_fallback_url: str = 'https://www.google.com/search?q=%s') -> RedirectResult:
+def process_redirect(
+    query: str,
+    fuzzy_matcher=None,
+    default_fallback_url: str = "https://www.google.com/search?q=%s",
+) -> RedirectResult:
     """
     Process a redirect query and return the result.
 
@@ -92,7 +98,7 @@ def process_redirect(query: str, fuzzy_matcher=None, default_fallback_url: str =
     """
     if not query or not query.strip():
         # Empty query, redirect to default
-        return RedirectResult(url=default_fallback_url.replace('%s', ''))
+        return RedirectResult(url=default_fallback_url.replace("%s", ""))
 
     command, args = parse_query(query)
 

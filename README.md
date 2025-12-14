@@ -278,16 +278,16 @@ open htmlcov/index.html  # View detailed HTML report
 
 ```bash
 # Install development dependencies
-pip install ruff
+uv pip install ruff
 
 # Run linter
-ruff check app/ tests/
+uv run ruff check app/ tests/
 
 # Auto-fix issues
-ruff check --fix app/ tests/
+uv run ruff check --fix app/ tests/
 
 # Format code
-ruff format app/ tests/
+uv run ruff format app/ tests/
 ```
 
 ### Continuous Integration

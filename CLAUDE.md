@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Reference
+
+- **Testing Guide**: See `TESTING.md` for comprehensive testing documentation
+- **Branch Protection**: See `.github/BRANCH_PROTECTION.md` for CI/CD and merge requirements
+- **Docker Guide**: See `DOCKER.md` for deployment information
+
+**⚠️ Important:** Always use `uv run` for Python commands, never direct `python` or `pytest`.
+
 ## Project Overview
 
 Froglol is a URL bookmark redirection server inspired by Facebook's bunnylol. It allows users to create custom shortcuts for websites and use them directly from the browser's URL bar (e.g., `google python tutorials` redirects to Google search).
@@ -16,6 +24,17 @@ Froglol is a URL bookmark redirection server inspired by Facebook's bunnylol. It
 
 ## Development Commands
 
+### Important: Always Use `uv`
+
+This project uses **`uv`** for dependency management and command execution. Always prefix commands with `uv run`:
+
+- ✅ **Correct**: `uv run pytest`
+- ❌ **Wrong**: `pytest` or `python -m pytest`
+- ✅ **Correct**: `uv run python run.py`
+- ❌ **Wrong**: `python run.py`
+
+Using `uv run` ensures the correct virtual environment and dependencies are used.
+
 ### Local Development (using uv)
 
 ```bash
@@ -26,11 +45,19 @@ uv pip install -r requirements.txt
 # Run development server
 uv run python run.py
 
-# Run tests
+# Run all tests
 uv run pytest
+
+# Run specific test suites
+uv run pytest tests/test_units.py -v          # Unit tests only
+uv run pytest tests/test_integration.py -v    # Integration tests only
+uv run pytest tests/test_api.py -v            # API tests only
 
 # Run specific test
 uv run pytest tests/test_redirect.py::test_name -v
+
+# Run tests without coverage (faster for development)
+uv run pytest --no-cov
 
 # Reset database (deletes and re-seeds)
 rm -f instance/froglol.db
@@ -126,16 +153,102 @@ The app automatically creates tables and seeds initial data on first run:
 
 ## Testing
 
-Tests use pytest with Flask testing utilities:
-- Test configuration in `pytest.ini`
-- Test fixtures in `tests/conftest.py` (provides `app` and `client` fixtures)
-- Tests in `tests/test_redirect.py`
+The project has comprehensive test coverage (114 tests, 89% coverage) organized into:
 
-When writing tests:
-- Use the `client` fixture for making requests
+### Test Organization
+
+- **`tests/test_units.py`** (45 tests) - Unit tests for individual functions and components
+  - Tests in isolation without external dependencies
+  - Fast execution, focused on single responsibilities
+  - Examples: `parse_query()`, `substitute_args()`, model CRUD operations
+
+- **`tests/test_integration.py`** (26 tests) - Integration tests for complete workflows
+  - End-to-end redirect flows (exact match, alias, fuzzy, fallback)
+  - CRUD integration (create and immediately use bookmarks)
+  - Usage tracking verification
+  - Edge cases (Unicode, special characters, concurrent operations)
+
+- **`tests/test_api.py`** (20 tests) - REST API endpoint tests
+- **`tests/test_fuzzy_matcher.py`** (12 tests) - Fuzzy matching service tests
+- **`tests/test_redirect.py`** (11 tests) - Redirect endpoint and helper tests
+
+### Test Configuration
+
+- **Config**: `pytest.ini` sets test paths, coverage requirements (80% minimum)
+- **Fixtures**: `tests/conftest.py` provides:
+  - `app` - Flask app instance with test config
+  - `client` - Test client for making HTTP requests
+  - `sample_bookmark` - Pre-created bookmark for testing
+  - `seeded_app` / `seeded_client` - App with realistic seed data
+- **Database**: Tests use isolated in-memory SQLite database
+- **Coverage**: Enforced at 80% minimum, currently at 89%
+
+### When Writing Tests
+
+**For Unit Tests:**
+- Test one function/method at a time
+- Mock external dependencies
+- Use descriptive names: `test_parse_query_with_empty_string()`
+- Test edge cases and error conditions
+- Keep tests fast (< 100ms each)
+
+**For Integration Tests:**
+- Test complete user workflows
+- Use real database (in-memory)
+- Organize into test classes by feature
+- Verify multiple components work together
+- Example: Create bookmark via API, then redirect using it
+
+**General Guidelines:**
+- Always use `uv run pytest` to run tests
+- Use the `client` fixture for making HTTP requests
 - Use the `app` fixture for app context operations
-- Tests run with isolated in-memory database
-- Fixtures are session/function scoped as appropriate
+- Write tests before writing code (TDD approach recommended)
+- Run tests locally before pushing: `uv run pytest`
+- Check coverage: `uv run pytest --cov-report=html`
+
+### CI/CD Integration
+
+All tests run automatically in GitHub Actions on every push/PR:
+1. Unit tests run first (fast failure)
+2. Integration tests run second (workflow validation)
+3. Full suite with coverage (must reach 80%)
+
+Branch protection blocks merges if:
+- Any test fails
+- Coverage drops below 80%
+- Linting fails
+
+See `TESTING.md` for detailed testing guide and `.github/BRANCH_PROTECTION.md` for CI/CD setup.
+
+### When to Add Tests
+
+**Adding a new function/method:**
+1. Write unit test in `tests/test_units.py` first (TDD)
+2. Implement the function
+3. Verify test passes: `uv run pytest tests/test_units.py -k test_your_function`
+
+**Adding a new API endpoint:**
+1. Add unit tests for any new service functions
+2. Add API tests in `tests/test_api.py` for endpoint behavior
+3. Add integration test in `tests/test_integration.py` for complete workflow
+
+**Adding a new user workflow:**
+1. Add integration test in `tests/test_integration.py` showing the complete flow
+2. Add unit tests for any new helper functions
+3. Run integration tests: `uv run pytest tests/test_integration.py -v`
+
+**Fixing a bug:**
+1. Write a failing test that reproduces the bug
+2. Fix the bug
+3. Verify the test now passes
+4. This prevents regression
+
+**Modifying existing code:**
+1. Run existing tests first: `uv run pytest`
+2. Update tests if behavior changed intentionally
+3. Add new tests for new edge cases
+4. Ensure coverage doesn't drop
 
 ## Docker Deployment
 
@@ -171,8 +284,29 @@ Aliases are first-class alternate commands:
 
 ## Common Pitfalls
 
+### Development Environment
+- **Using `uv`**: ALWAYS use `uv run` prefix for Python commands. Direct `python` or `pytest` may use wrong environment or dependencies
+- **Virtual environment**: Created with `uv venv`, not standard `python -m venv`
+- **Installing packages**: Use `uv pip install`, not `pip install`
+
+### Database
 - **Database location**: SQLite file is in `instance/froglol.db`, not at repo root
 - **First run detection**: Only works for SQLite; other databases won't auto-seed
 - **Case sensitivity**: Commands are normalized to lowercase during lookup
+
+### URL Handling
 - **URL encoding**: Always use `quote_plus` for args to handle special characters
+- **Placeholder position**: `%s` can appear anywhere in URL, gets replaced with encoded args
+
+### Testing
+- **Test isolation**: Each test uses fresh in-memory database, no state carries over
+- **Fixtures**: Use `seeded_app`/`seeded_client` for tests needing realistic data, not `sample_bookmark`
+- **Coverage**: Don't commit code that drops coverage below 80%
 - **Fuzzy match deduplication**: Must deduplicate by `bookmark_id` to avoid showing same bookmark multiple times via different aliases
+- **Running tests**: Always use `uv run pytest`, never `pytest` directly
+
+### Code Changes
+- **Write tests first**: Add tests before implementing features (TDD)
+- **Run tests before committing**: Use `uv run pytest` to catch issues early
+- **Integration tests**: Add integration tests for any user-facing workflow changes
+- **Breaking changes**: Update both unit tests and integration tests when changing behavior

@@ -6,7 +6,9 @@ This guide explains how to set up branch protection rules to ensure all code cha
 
 The repository includes automated testing and quality checks via GitHub Actions:
 
-- **Tests**: Run on Python 3.10, 3.11, and 3.12
+- **Unit Tests**: Test individual functions and components in isolation
+- **Integration Tests**: Test complete workflows and end-to-end scenarios
+- **All Tests**: Run on Python 3.10, 3.11, and 3.12
 - **Code Coverage**: Enforces minimum 80% test coverage
 - **Linting**: Runs Ruff for code style and quality
 - **Security Checks**: Scans for vulnerabilities using Safety and Bandit
@@ -59,7 +61,8 @@ Click **Create** or **Save changes**
 
 With these rules enabled, the following will be **blocked** from merging:
 
-- ❌ Code that fails any test
+- ❌ Code that fails any unit test
+- ❌ Code that fails any integration test
 - ❌ Code with < 80% test coverage
 - ❌ Code with linting errors
 - ❌ Code with security vulnerabilities (high severity)
@@ -72,8 +75,18 @@ With these rules enabled, the following will be **blocked** from merging:
 
 Runs on every push and pull request:
 
-1. **Tests** - Runs pytest across Python 3.10, 3.11, 3.12
-   - Must pass all tests
+1. **Unit Tests** - Tests individual components (45 tests)
+   - Tests functions in isolation
+   - Validates models, services, and utilities
+
+2. **Integration Tests** - Tests complete workflows (26 tests)
+   - End-to-end redirect flows
+   - CRUD operations with immediate usage
+   - Fuzzy matching scenarios
+   - Edge cases and concurrent operations
+
+3. **Full Test Suite** - Runs all tests with coverage (114+ tests)
+   - Must pass all tests across Python 3.10, 3.11, 3.12
    - Must meet 80% code coverage threshold
    - Uploads coverage to Codecov (optional)
 
@@ -99,26 +112,32 @@ Before pushing, run tests locally to catch issues early:
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 
 # Run all tests with coverage
-pytest
+uv run pytest
+
+# Run only unit tests
+uv run pytest tests/test_units.py -v
+
+# Run only integration tests
+uv run pytest tests/test_integration.py -v
 
 # Run specific test file
-pytest tests/test_api.py -v
+uv run pytest tests/test_api.py -v
 
 # Run tests without coverage (faster)
-pytest --no-cov
+uv run pytest --no-cov
 
 # Run linting
-pip install ruff
-ruff check app/ tests/
-ruff format --check app/ tests/
+uv pip install ruff
+uv run ruff check app/ tests/
+uv run ruff format --check app/ tests/
 
 # Run security checks
-pip install safety bandit
-safety check
-bandit -r app/
+uv pip install safety bandit
+uv run safety check
+uv run bandit -r app/
 ```
 
 ## Coverage Requirements
@@ -127,7 +146,7 @@ The project enforces **80% minimum code coverage**. To check coverage:
 
 ```bash
 # Run tests with coverage report
-pytest
+uv run pytest
 
 # View detailed HTML report
 open htmlcov/index.html  # macOS
@@ -185,11 +204,11 @@ If you're an admin and need to bypass protections in an emergency:
 **Solution:**
 ```bash
 # Test with same Python version as CI
-python3.11 -m pytest
+uv run pytest
 
 # Clean test environment
 rm -rf .pytest_cache htmlcov .coverage
-pytest
+uv run pytest
 ```
 
 ### Coverage Threshold Not Met
@@ -197,11 +216,11 @@ pytest
 **Solution:**
 ```bash
 # Find uncovered code
-pytest --cov-report=term-missing
+uv run pytest --cov-report=term-missing
 
 # Add tests for missing coverage
 # Then verify:
-pytest --cov-report=html
+uv run pytest --cov-report=html
 open htmlcov/index.html
 ```
 
@@ -210,11 +229,11 @@ open htmlcov/index.html
 **Solution:**
 ```bash
 # Auto-fix most issues
-ruff check --fix app/ tests/
-ruff format app/ tests/
+uv run ruff check --fix app/ tests/
+uv run ruff format app/ tests/
 
 # Check what remains
-ruff check app/ tests/
+uv run ruff check app/ tests/
 ```
 
 ### Branch Out of Date

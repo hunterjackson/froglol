@@ -1,9 +1,9 @@
 services:
   froglol:
-    image: ghcr.io/hunterjackson/froglol:latest
+    #image: ghcr.io/hunterjackson/froglol:latest
 
     # Uncomment to build locally instead:
-    # build: .
+    build: .
 
     container_name: froglol
     restart: unless-stopped

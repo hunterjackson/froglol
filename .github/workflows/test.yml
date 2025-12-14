@@ -32,7 +32,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests with coverage
+      - name: Run unit tests
+        run: |
+          pytest tests/test_units.py -v
+
+      - name: Run integration tests
+        run: |
+          pytest tests/test_integration.py -v
+
+      - name: Run all tests with coverage
         run: |
           pytest
 
