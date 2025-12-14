@@ -23,7 +23,13 @@ Automatically runs before every commit to ensure code quality.
 2. Runs `ruff check --fix` to auto-fix linting issues
 3. Runs `ruff format` to format code
 4. Re-stages files that were modified
-5. Blocks commit if unfixable issues are found
+5. **Verifies** all linting issues are resolved (runs `ruff check app/ tests/`)
+6. **Verifies** formatting is correct (runs `ruff format --check app/ tests/`)
+7. Blocks commit if any issues remain
+
+**Why the verification steps?**
+
+Steps 5 and 6 run the **exact same commands** that GitHub Actions will run. This ensures that if your commit passes the hook, it will **guaranteed pass** the GitHub Actions lint check. This makes it impossible for linting failures to reach GitHub.
 
 **Example output:**
 ```
@@ -42,7 +48,13 @@ app/routes/bookmarks.py
    ✓ app/models.py
    ✓ app/routes/bookmarks.py
 
-✅ All checks passed! Proceeding with commit.
+4. Verifying all linting issues are resolved...
+✓ All checks passed
+
+5. Verifying formatting is correct...
+✓ 17 files already formatted
+
+✅ All checks passed! Your code will pass GitHub Actions lint checks.
 ```
 
 **If the hook blocks your commit:**

@@ -3,7 +3,6 @@ import time
 from rapidfuzz import fuzz
 from sqlalchemy.orm import joinedload
 from app.models import Bookmark
-from app import db
 
 
 class FuzzyMatcher:

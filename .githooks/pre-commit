@@ -48,6 +48,28 @@ for file in $STAGED_PY_FILES; do
     fi
 done
 
+# Verify no linting issues remain (matches GitHub Actions)
 echo ""
-echo "✅ All checks passed! Proceeding with commit."
+echo "4. Verifying all linting issues are resolved..."
+if ! uv run ruff check app/ tests/; then
+    echo ""
+    echo "❌ Ruff check found issues that weren't fixed."
+    echo "   This is what GitHub Actions will run and fail on."
+    echo "   Please fix the issues manually and try again."
+    exit 1
+fi
+
+# Verify formatting is correct (matches GitHub Actions)
+echo ""
+echo "5. Verifying formatting is correct..."
+if ! uv run ruff format --check app/ tests/; then
+    echo ""
+    echo "❌ Ruff format check found issues."
+    echo "   This is what GitHub Actions will run and fail on."
+    echo "   Please run 'uv run ruff format app/ tests/' and try again."
+    exit 1
+fi
+
+echo ""
+echo "✅ All checks passed! Your code will pass GitHub Actions lint checks."
 exit 0
