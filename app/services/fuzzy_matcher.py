@@ -1,32 +1,46 @@
 from typing import List, Dict
+import time
 from rapidfuzz import fuzz
 from app.models import Bookmark
+from app import db
 
 
 class FuzzyMatcher:
-    def __init__(self, threshold: int = 60, limit: int = 3):
+    def __init__(self, threshold: int = 60, limit: int = 3, cache_ttl: int = 60):
         """
         Initialize fuzzy matcher.
 
         Args:
             threshold: Minimum similarity score (0-100) to consider a match
             limit: Maximum number of suggestions to return
+            cache_ttl: Cache time-to-live in seconds (default: 60)
         """
         self.threshold = threshold
         self.limit = limit
-        self._cache = None
+        self.cache_ttl = cache_ttl
+        self._commands_cache = None
+        self._cache_timestamp = None
 
     def _get_all_commands(self) -> Dict[str, Bookmark]:
         """
-        Get all available commands (bookmark names and aliases).
+        Get all available commands (bookmark names and aliases) with caching.
 
         Returns:
             Dictionary mapping command name to Bookmark object
         """
-        commands = {}
+        now = time.time()
 
-        # Get all bookmarks
-        bookmarks = Bookmark.query.all()
+        # Return cached data if still valid
+        if (
+            self._commands_cache is not None
+            and self._cache_timestamp is not None
+            and now - self._cache_timestamp < self.cache_ttl
+        ):
+            return self._commands_cache
+
+        # Rebuild cache with eager loading to avoid N+1 queries
+        commands = {}
+        bookmarks = Bookmark.query.options(db.joinedload(Bookmark.aliases)).all()
 
         for bookmark in bookmarks:
             # Add bookmark name
@@ -35,6 +49,10 @@ class FuzzyMatcher:
             # Add all aliases
             for alias in bookmark.aliases:
                 commands[alias.alias] = bookmark
+
+        # Update cache
+        self._commands_cache = commands
+        self._cache_timestamp = now
 
         return commands
 

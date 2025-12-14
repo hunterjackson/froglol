@@ -248,9 +248,7 @@ class TestProcessRedirect:
     def test_process_exact_match(self, app):
         """Test processing exact match."""
         with app.app_context():
-            bookmark = Bookmark(
-                name="google", url="https://google.com/search?q=%s"
-            )
+            bookmark = Bookmark(name="google", url="https://google.com/search?q=%s")
             db.session.add(bookmark)
             db.session.commit()
 
@@ -304,9 +302,7 @@ class TestProcessRedirect:
     def test_process_increments_usage(self, app):
         """Test that process_redirect increments usage."""
         with app.app_context():
-            bookmark = Bookmark(
-                name="test", url="https://example.com", use_count=0
-            )
+            bookmark = Bookmark(name="test", url="https://example.com", use_count=0)
             db.session.add(bookmark)
             db.session.commit()
             bookmark_id = bookmark.id

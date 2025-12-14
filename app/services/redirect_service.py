@@ -1,15 +1,16 @@
 from urllib.parse import quote_plus
 from typing import Optional, Tuple, List, Dict
+from dataclasses import dataclass
 from app.models import Bookmark, Alias
 from app import db
 
 
+@dataclass
 class RedirectResult:
-    def __init__(
-        self, url: Optional[str] = None, suggestions: Optional[List[Dict]] = None
-    ):
-        self.url = url
-        self.suggestions = suggestions
+    """Result of processing a redirect query."""
+
+    url: Optional[str] = None
+    suggestions: Optional[List[Dict]] = None
 
 
 def parse_query(query: str) -> Tuple[str, str]:
@@ -39,10 +40,7 @@ def substitute_args(url_template: str, args: str) -> str:
     Returns:
         URL with args substituted and encoded
     """
-    if not args:
-        return url_template.replace("%s", "")
-
-    encoded_args = quote_plus(args)
+    encoded_args = quote_plus(args) if args else ""
     return url_template.replace("%s", encoded_args)
 
 
@@ -56,17 +54,16 @@ def find_bookmark_by_name_or_alias(command: str) -> Optional[Bookmark]:
     Returns:
         Bookmark object if found, None otherwise
     """
-    # Try exact match on bookmark name
-    bookmark = Bookmark.query.filter_by(name=command).first()
-    if bookmark:
-        return bookmark
+    from sqlalchemy import or_
 
-    # Try to find by alias
-    alias = Alias.query.filter_by(alias=command).first()
-    if alias:
-        return alias.bookmark
+    # Single query that checks both bookmarks and aliases
+    bookmark = (
+        Bookmark.query.outerjoin(Alias)
+        .filter(or_(Bookmark.name == command, Alias.alias == command))
+        .first()
+    )
 
-    return None
+    return bookmark
 
 
 def increment_usage(bookmark: Bookmark):

@@ -1,6 +1,5 @@
 from flask import Blueprint, request, redirect, render_template, current_app
 from app.services.redirect_service import process_redirect
-from app.services.fuzzy_matcher import FuzzyMatcher
 
 bp = Blueprint("redirect", __name__)
 
@@ -13,16 +12,10 @@ def index():
     """
     query = request.args.get("q", "")
 
-    # Initialize fuzzy matcher with config settings
-    fuzzy_matcher = FuzzyMatcher(
-        threshold=current_app.config["FUZZY_MATCH_THRESHOLD"],
-        limit=current_app.config["FUZZY_MATCH_LIMIT"],
-    )
-
-    # Process the redirect
+    # Process the redirect using application-scoped fuzzy matcher
     result = process_redirect(
         query,
-        fuzzy_matcher=fuzzy_matcher,
+        fuzzy_matcher=current_app.fuzzy_matcher,
         default_fallback_url=current_app.config["DEFAULT_FALLBACK_URL"],
     )
 

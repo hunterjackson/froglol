@@ -107,17 +107,6 @@ The application will be available at `http://localhost:5000`
 
 ### Docker Commands
 
-**Using Make (recommended):**
-```bash
-make up          # Start the application
-make logs        # View logs
-make down        # Stop the application
-make restart     # Restart the application
-make clean       # Stop and remove everything
-make shell       # Open shell in container
-make stats       # View resource usage
-```
-
 **Using Docker Compose directly:**
 ```bash
 # Start in detached mode

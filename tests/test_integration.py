@@ -126,6 +126,7 @@ class TestEndToEndRedirectFlow:
         """Test proper encoding of special characters."""
         # Use URL encoding for the query parameter to include special characters
         from urllib.parse import quote
+
         query = quote("google test&special=value")
         response = seeded_client.get(f"/?q={query}")
         assert response.status_code == 302
@@ -172,18 +173,14 @@ class TestUsageTracking:
     def test_usage_not_incremented_on_no_match(self, seeded_client, seeded_app):
         """Test that failed lookups don't increment any counts."""
         with seeded_app.app_context():
-            initial_counts = {
-                b.name: b.use_count for b in Bookmark.query.all()
-            }
+            initial_counts = {b.name: b.use_count for b in Bookmark.query.all()}
 
         # Query that doesn't match
         response = seeded_client.get("/?q=nonexistent test")
         assert response.status_code == 302
 
         with seeded_app.app_context():
-            final_counts = {
-                b.name: b.use_count for b in Bookmark.query.all()
-            }
+            final_counts = {b.name: b.use_count for b in Bookmark.query.all()}
             # All counts should be unchanged
             assert initial_counts == final_counts
 

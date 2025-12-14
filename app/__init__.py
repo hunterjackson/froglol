@@ -12,6 +12,14 @@ def create_app(config_class="config.Config"):
     # Initialize extensions
     db.init_app(app)
 
+    # Create fuzzy matcher instance (reused across requests)
+    from app.services.fuzzy_matcher import FuzzyMatcher
+
+    app.fuzzy_matcher = FuzzyMatcher(
+        threshold=app.config.get("FUZZY_MATCH_THRESHOLD", 60),
+        limit=app.config.get("FUZZY_MATCH_LIMIT", 3),
+    )
+
     # Register blueprints
     from app.routes import redirect, bookmarks, ui
 
