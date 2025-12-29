@@ -77,25 +77,19 @@ def increment_usage(bookmark: Bookmark):
     db.session.commit()
 
 
-def process_redirect(
-    query: str,
-    fuzzy_matcher=None,
-    default_fallback_url: str = "https://www.google.com/search?q=%s",
-) -> RedirectResult:
+def process_redirect(query: str) -> RedirectResult:
     """
     Process a redirect query and return the result.
 
     Args:
         query: The full query string from the browser
-        fuzzy_matcher: Optional fuzzy matcher instance
-        default_fallback_url: Default URL to use if no match found
 
     Returns:
-        RedirectResult with either a URL to redirect to or suggestions
+        RedirectResult with either a URL to redirect to or None if no match found
     """
     if not query or not query.strip():
-        # Empty query, redirect to default
-        return RedirectResult(url=default_fallback_url.replace("%s", ""))
+        # Empty query, return no match
+        return RedirectResult(url=None)
 
     command, args = parse_query(query)
 
@@ -106,12 +100,5 @@ def process_redirect(
         final_url = substitute_args(bookmark.url, args)
         return RedirectResult(url=final_url)
 
-    # Try fuzzy match if fuzzy_matcher is provided
-    if fuzzy_matcher:
-        suggestions = fuzzy_matcher.find_similar_commands(command)
-        if suggestions:
-            return RedirectResult(suggestions=suggestions)
-
-    # Fallback to default search
-    final_url = substitute_args(default_fallback_url, query)
-    return RedirectResult(url=final_url)
+    # No match found
+    return RedirectResult(url=None)

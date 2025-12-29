@@ -13,7 +13,6 @@ from app.services.redirect_service import (
     increment_usage,
     process_redirect,
 )
-from app.services.fuzzy_matcher import FuzzyMatcher
 
 
 class TestParseQuery:
@@ -256,48 +255,18 @@ class TestProcessRedirect:
             assert result.url is not None
             assert "google.com" in result.url
             assert "test" in result.url
-            assert result.suggestions is None
 
     def test_process_empty_query(self, app):
         """Test processing empty query."""
         with app.app_context():
             result = process_redirect("")
-            assert result.url is not None
-            # Should return fallback URL
-
-    def test_process_no_match_no_fuzzy(self, app):
-        """Test processing with no match and no fuzzy matcher."""
-        with app.app_context():
-            result = process_redirect("nonexistent test", fuzzy_matcher=None)
-            assert result.url is not None
-            # Should fallback with full query
-
-    def test_process_no_match_with_fuzzy(self, app):
-        """Test processing with no match but fuzzy suggestions."""
-        with app.app_context():
-            bookmark = Bookmark(name="google", url="https://google.com/search?q=%s")
-            db.session.add(bookmark)
-            db.session.commit()
-
-            fuzzy_matcher = FuzzyMatcher(threshold=60, limit=3)
-            result = process_redirect("googl test", fuzzy_matcher=fuzzy_matcher)
-
-            # Should return suggestions for "googl"
-            assert result.suggestions is not None
-            assert len(result.suggestions) > 0
             assert result.url is None
 
-    def test_process_custom_fallback(self, app):
-        """Test processing with custom fallback URL."""
+    def test_process_no_match(self, app):
+        """Test processing with no match."""
         with app.app_context():
-            custom_fallback = "https://duckduckgo.com/?q=%s"
-            result = process_redirect(
-                "nonexistent test",
-                fuzzy_matcher=None,
-                default_fallback_url=custom_fallback,
-            )
-            assert result.url is not None
-            assert "duckduckgo.com" in result.url
+            result = process_redirect("nonexistent test")
+            assert result.url is None
 
     def test_process_increments_usage(self, app):
         """Test that process_redirect increments usage."""
@@ -466,41 +435,3 @@ class TestAliasModel:
             assert "bookmark_id" in data
 
 
-class TestFuzzyMatcherUnit:
-    """Unit tests for FuzzyMatcher class."""
-
-    def test_fuzzy_matcher_initialization(self):
-        """Test FuzzyMatcher initialization."""
-        matcher = FuzzyMatcher(threshold=70, limit=5)
-        assert matcher.threshold == 70
-        assert matcher.limit == 5
-
-    def test_fuzzy_matcher_default_values(self):
-        """Test FuzzyMatcher default values."""
-        matcher = FuzzyMatcher()
-        assert matcher.threshold == 60
-        assert matcher.limit == 3
-
-    def test_fuzzy_matcher_empty_database(self, app):
-        """Test fuzzy matcher with empty database."""
-        with app.app_context():
-            matcher = FuzzyMatcher(threshold=60, limit=3)
-            results = matcher.find_similar_commands("test")
-            assert results == []
-
-    def test_fuzzy_matcher_invalid_threshold(self):
-        """Test that matcher handles invalid threshold values."""
-        # Should accept any numeric value (no validation)
-        matcher = FuzzyMatcher(threshold=150, limit=3)
-        assert matcher.threshold == 150
-
-        matcher = FuzzyMatcher(threshold=-10, limit=3)
-        assert matcher.threshold == -10
-
-    def test_fuzzy_matcher_invalid_limit(self):
-        """Test that matcher handles invalid limit values."""
-        matcher = FuzzyMatcher(threshold=60, limit=0)
-        assert matcher.limit == 0
-
-        matcher = FuzzyMatcher(threshold=60, limit=-1)
-        assert matcher.limit == -1

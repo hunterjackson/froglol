@@ -102,25 +102,15 @@ class TestEndToEndRedirectFlow:
         assert response.status_code == 302
         assert "chat.openai.com" in response.location
 
-    def test_fuzzy_match_suggestions(self, seeded_client):
-        """Test that fuzzy matching shows suggestions for typos."""
-        response = seeded_client.get("/?q=googl python")
-        # Should show suggestions page (200) with 'google' as a suggestion
-        assert response.status_code == 200
-        assert b"google" in response.data
-
-    def test_no_match_fallback(self, seeded_client):
-        """Test fallback to Google when no match is found."""
+    def test_no_match(self, seeded_client):
+        """Test that no match returns 404."""
         response = seeded_client.get("/?q=completelyrandomcommand test")
-        assert response.status_code == 302
-        # Should fallback to Google with the full query
-        assert "google.com" in response.location
+        assert response.status_code == 404
 
-    def test_empty_query_fallback(self, seeded_client):
+    def test_empty_query(self, seeded_client):
         """Test handling of empty query."""
         response = seeded_client.get("/")
-        # Should either show homepage or redirect to fallback
-        assert response.status_code in [200, 302]
+        assert response.status_code == 404
 
     def test_special_characters_in_args(self, seeded_client):
         """Test proper encoding of special characters."""
@@ -177,7 +167,7 @@ class TestUsageTracking:
 
         # Query that doesn't match
         response = seeded_client.get("/?q=nonexistent test")
-        assert response.status_code == 302
+        assert response.status_code == 404
 
         with seeded_app.app_context():
             final_counts = {b.name: b.use_count for b in Bookmark.query.all()}
@@ -277,10 +267,9 @@ class TestBookmarkCRUDIntegration:
         response = client.delete(f"/api/bookmarks/{bookmark_id}")
         assert response.status_code == 204
 
-        # Try to use it - should fallback
+        # Try to use it - should return 404
         response = client.get("/?q=temp")
-        assert response.status_code == 302
-        assert "google.com" in response.location  # Fallback
+        assert response.status_code == 404
 
     def test_add_alias_after_creation(self, client, app):
         """Test adding an alias to an existing bookmark and using it."""
@@ -303,44 +292,6 @@ class TestBookmarkCRUDIntegration:
         response = client.get("/?q=w python")
         assert response.status_code == 302
         assert "wikipedia.org" in response.location
-
-
-class TestFuzzyMatchingIntegration:
-    """Test fuzzy matching in realistic scenarios."""
-
-    def test_typo_shows_suggestions(self, seeded_client):
-        """Test that typos show helpful suggestions."""
-        response = seeded_client.get("/?q=githb repository")
-        assert response.status_code == 200
-        # Should suggest 'github'
-        assert b"github" in response.data
-
-    def test_partial_command_shows_suggestions(self, seeded_client):
-        """Test that partial commands show suggestions."""
-        response = seeded_client.get("/?q=goog test")
-        assert response.status_code == 200
-        # Should suggest 'google'
-        assert b"google" in response.data
-
-    def test_multiple_similar_suggestions(self, seeded_client, seeded_app):
-        """Test that multiple similar bookmarks are all suggested."""
-        with seeded_app.app_context():
-            # Add similar bookmarks
-            bookmarks = [
-                Bookmark(name="gitea", url="https://gitea.io/search?q=%s"),
-                Bookmark(name="gitlab", url="https://gitlab.com/search?q=%s"),
-            ]
-            for b in bookmarks:
-                db.session.add(b)
-            db.session.commit()
-
-        # Search with similar prefix
-        response = seeded_client.get("/?q=git test")
-        assert response.status_code == 200
-        # Should suggest multiple git-related bookmarks
-        data = response.data.decode()
-        # At least github should be suggested
-        assert "github" in data or "gh" in data
 
 
 class TestEdgeCases:
@@ -442,7 +393,6 @@ class TestConcurrentUsage:
         response = client.delete(f"/api/bookmarks/{bookmark_id}")
         assert response.status_code == 204
 
-        # Try to use it
+        # Try to use it - should return 404
         response = client.get("/?q=test1 fail")
-        assert response.status_code == 302
-        assert "google.com" in response.location  # Should fallback
+        assert response.status_code == 404

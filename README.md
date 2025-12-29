@@ -10,7 +10,6 @@ A URL bookmark redirection server inspired by Facebook's bunnylol. Froglol allow
 - **Fast URL Redirection**: Type shortcuts in your browser's address bar to quickly navigate to websites
 - **Dynamic Search Integration**: Use placeholders in URLs to pass search queries (e.g., `google python tutorials`)
 - **Command Aliases**: Create multiple shortcuts for the same bookmark (e.g., `g` and `google`)
-- **Fuzzy Matching**: Get up to 3 suggestions when you mistype a command
 - **Web UI**: Manage bookmarks through a clean, intuitive interface
 - **Usage Tracking**: See which bookmarks you use most frequently
 - **Auto-Seeding**: Automatically sets up 8 common bookmarks on first run
@@ -22,7 +21,6 @@ Once set up as your browser's search engine:
 - Type `google anthropic` → Redirects to Google search for "anthropic"
 - Type `gh flask` → Redirects to GitHub search for "flask"
 - Type `yt music` → Redirects to YouTube search for "music"
-- Type `googl` (typo) → Shows suggestions: "Did you mean 'google'?"
 
 ## Installation
 
@@ -62,9 +60,6 @@ Edit `.env`:
 ```
 SECRET_KEY=your-secret-key-here
 DATABASE_URL=sqlite:///instance/froglol.db
-DEFAULT_FALLBACK_URL=https://www.google.com/search?q=%s
-FUZZY_MATCH_THRESHOLD=60
-FUZZY_MATCH_LIMIT=3
 ```
 
 ### 5. Run the application
@@ -230,8 +225,7 @@ froglol/
 │   │   ├── bookmarks.py         # Bookmark API
 │   │   └── ui.py                # Web UI routes
 │   ├── services/
-│   │   ├── redirect_service.py  # Redirect business logic
-│   │   └── fuzzy_matcher.py     # Fuzzy matching
+│   │   └── redirect_service.py  # Redirect business logic
 │   ├── static/
 │   │   ├── css/style.css
 │   │   └── js/app.js
@@ -239,7 +233,7 @@ froglol/
 │       ├── base.html
 │       ├── index.html
 │       ├── bookmark_form.html
-│       └── suggestions.html
+│       └── no_match.html
 ├── tests/                        # Test files
 ├── instance/                     # SQLite database (gitignored)
 ├── config.py                     # Configuration
@@ -345,9 +339,6 @@ All configuration is in `config.py` and can be overridden with environment varia
 
 - `SECRET_KEY`: Flask secret key for sessions
 - `DATABASE_URL`: Database connection string
-- `DEFAULT_FALLBACK_URL`: Where to redirect when no bookmark matches
-- `FUZZY_MATCH_THRESHOLD`: Minimum similarity score (0-100) for suggestions
-- `FUZZY_MATCH_LIMIT`: Maximum number of suggestions to show
 
 ## Security Considerations
 
