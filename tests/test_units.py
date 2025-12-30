@@ -433,5 +433,3 @@ class TestAliasModel:
             assert data["alias"] == "t"
             assert "id" in data
             assert "bookmark_id" in data
-
-

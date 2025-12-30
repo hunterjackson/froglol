@@ -1,4 +1,4 @@
-from flask import Blueprint, request, redirect, render_template, url_for
+from flask import Blueprint, request, redirect, render_template
 from app.services.redirect_service import process_redirect
 
 bp = Blueprint("redirect", __name__)
