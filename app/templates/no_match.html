@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}No Match Found - Froglol{% endblock %}
+
+{% block content %}
+<div class="no-match-page">
+    <h1>No bookmark found{% if query %} for: <code>{{ query }}</code>{% endif %}</h1>
+
+    <div class="help-box">
+        <p>The command you entered doesn't match any existing bookmarks.</p>
+        <p>You can:</p>
+        <ul>
+            <li><a href="{{ url_for('ui.manage') }}">View all bookmarks</a> to find the right command</li>
+            <li><a href="{{ url_for('ui.new_bookmark') }}">Create a new bookmark</a> for this command</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

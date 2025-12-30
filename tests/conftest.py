@@ -13,9 +13,6 @@ def app():
         SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
         SQLALCHEMY_TRACK_MODIFICATIONS = False
         SECRET_KEY = "test-secret-key"
-        DEFAULT_FALLBACK_URL = "https://www.google.com/search?q=%s"
-        FUZZY_MATCH_THRESHOLD = 60
-        FUZZY_MATCH_LIMIT = 3
 
     app = create_app(config_class=TestConfig)
 

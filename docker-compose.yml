@@ -18,9 +18,6 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - DATABASE_URL=sqlite:////app/instance/froglol.db
-      - DEFAULT_FALLBACK_URL=https://www.google.com/search?q=%s
-      - FUZZY_MATCH_THRESHOLD=60
-      - FUZZY_MATCH_LIMIT=3
 
     # Resource limits for small user base
     deploy:

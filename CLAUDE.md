@@ -18,7 +18,6 @@ Froglol is a URL bookmark redirection server inspired by Facebook's bunnylol. It
 - Fast URL redirection via browser search engine integration
 - Dynamic search with `%s` placeholder in URLs
 - Command aliases (multiple shortcuts for same bookmark)
-- Fuzzy matching with suggestions when commands are mistyped
 - Usage tracking for bookmarks
 - Auto-seeding with common bookmarks on first run
 
@@ -108,7 +107,6 @@ The app uses the **Flask application factory pattern** with blueprints for modul
   - `ui.py`: Web UI routes for managing bookmarks
 - **`app/services/`**: Business logic separated from routes:
   - `redirect_service.py`: Core redirect logic (query parsing, bookmark lookup, URL substitution)
-  - `fuzzy_matcher.py`: Fuzzy matching using rapidfuzz with configurable threshold/limit
 
 ### Request Flow
 
@@ -118,9 +116,8 @@ The app uses the **Flask application factory pattern** with blueprints for modul
    - Parse query into command + args
    - Exact match lookup (bookmark name or alias)
    - If found: increment usage, substitute `%s` in URL, redirect
-   - If not found: fuzzy match for suggestions
-   - If no suggestions: fallback to configured default URL
-4. Return either redirect (302) or suggestions page
+   - If not found: return 404 error page
+4. Return either redirect (302) or 404 error page
 
 ### Database Models
 
@@ -141,9 +138,6 @@ The app uses the **Flask application factory pattern** with blueprints for modul
 All configuration lives in `config.py` as `Config` class, loaded from environment variables:
 - `SECRET_KEY`: Flask session key (use strong value in production)
 - `DATABASE_URL`: Database URI (defaults to SQLite in `instance/froglol.db`)
-- `DEFAULT_FALLBACK_URL`: Fallback when no match (defaults to Google search)
-- `FUZZY_MATCH_THRESHOLD`: Min similarity score 0-100 (default: 60)
-- `FUZZY_MATCH_LIMIT`: Max suggestions to show (default: 3)
 
 Use `.env` file for local overrides (see `.env.example`).
 
@@ -165,15 +159,14 @@ The project has comprehensive test coverage (114 tests, 89% coverage) organized 
   - Fast execution, focused on single responsibilities
   - Examples: `parse_query()`, `substitute_args()`, model CRUD operations
 
-- **`tests/test_integration.py`** (26 tests) - Integration tests for complete workflows
-  - End-to-end redirect flows (exact match, alias, fuzzy, fallback)
+- **`tests/test_integration.py`** - Integration tests for complete workflows
+  - End-to-end redirect flows (exact match, alias)
   - CRUD integration (create and immediately use bookmarks)
   - Usage tracking verification
   - Edge cases (Unicode, special characters, concurrent operations)
 
-- **`tests/test_api.py`** (20 tests) - REST API endpoint tests
-- **`tests/test_fuzzy_matcher.py`** (12 tests) - Fuzzy matching service tests
-- **`tests/test_redirect.py`** (11 tests) - Redirect endpoint and helper tests
+- **`tests/test_api.py`** - REST API endpoint tests
+- **`tests/test_redirect.py`** - Redirect endpoint and helper tests
 
 ### Test Configuration
 
@@ -273,12 +266,6 @@ The `%s` placeholder in URLs is replaced with URL-encoded arguments:
 - Empty args: `%s` is replaced with empty string
 - Encoding uses `urllib.parse.quote_plus`
 
-### Fuzzy Matching
-Uses `rapidfuzz.fuzz.ratio()` for similarity scoring:
-- Returns matches above threshold, sorted by score then use_count
-- Deduplicates by bookmark_id (since aliases point to same bookmark)
-- Limited to configured max suggestions
-
 ### Alias Handling
 Aliases are first-class alternate commands:
 - Lookup checks both `Bookmark.name` and `Alias.alias`
@@ -306,7 +293,6 @@ Aliases are first-class alternate commands:
 - **Test isolation**: Each test uses fresh in-memory database, no state carries over
 - **Fixtures**: Use `seeded_app`/`seeded_client` for tests needing realistic data, not `sample_bookmark`
 - **Coverage**: Don't commit code that drops coverage below 80%
-- **Fuzzy match deduplication**: Must deduplicate by `bookmark_id` to avoid showing same bookmark multiple times via different aliases
 - **Running tests**: Always use `uv run pytest`, never `pytest` directly
 
 ### Code Changes

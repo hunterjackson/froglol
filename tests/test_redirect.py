@@ -67,19 +67,18 @@ def test_api_get_bookmarks(client, sample_bookmark):
     assert data[0]["name"] == "test"
 
 
-def test_redirect_fallback_url(client, app):
-    """Test redirect to fallback URL when no match."""
+def test_redirect_no_match(client, app):
+    """Test redirect when no match found."""
     response = client.get("/?q=nonexistent")
-    # Should redirect to fallback URL (no fuzzy matches found)
-    assert response.status_code == 302
-    assert "google.com" in response.location
+    # Should return 404
+    assert response.status_code == 404
 
 
 def test_redirect_empty_query(client, app):
     """Test redirect with empty query."""
     response = client.get("/")
-    # Should redirect to fallback or show error
-    assert response.status_code in [200, 302]
+    # Should return 404
+    assert response.status_code == 404
 
 
 def test_redirect_no_args(client, sample_bookmark):
@@ -120,14 +119,3 @@ def test_redirect_multiple_spaces(client, sample_bookmark):
     response = client.get("/?q=test   multiple   spaces")
     assert response.status_code == 302
     assert "example.com" in response.location
-
-
-def test_fuzzy_suggestions_page(client, sample_bookmark):
-    """Test fuzzy suggestions page appears for close matches."""
-    response = client.get("/?q=tst")  # Typo of 'test'
-    # Should show suggestions page (200) or redirect to exact match
-    assert response.status_code in [200, 302]
-
-    if response.status_code == 200:
-        # Check that response contains suggestion-related content
-        assert b"test" in response.data or b"suggestion" in response.data.lower()
